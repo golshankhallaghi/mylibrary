@@ -1,4 +1,4 @@
 package org.example.models;
 
-public class BonnectDB {
+public class Loan {
 }
