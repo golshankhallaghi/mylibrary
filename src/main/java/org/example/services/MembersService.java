@@ -1,6 +1,8 @@
 package org.example.services;
 
 import org.example.dao.MemberDAO;
+import org.example.exception.MyConnectionException;
+import org.example.exception.MySQLException;
 import org.example.models.Members;
 
 import java.sql.Connection;
@@ -11,86 +13,66 @@ public class MembersService {
     Connection connection;
     private final MemberDAO memberDAO;
 
-    public MembersService(Connection connection) {
-        this.connection = connection;
-        this.memberDAO = new MemberDAO(connection);
+    public MembersService(Connection connection) throws MyConnectionException {
+        try {
+            this.connection = connection;
+            this.memberDAO = new MemberDAO(connection);
+        } catch (Exception e) {
+            throw new MyConnectionException("error connecting to member dao" + e.getMessage());
+        }
     }
 
-    public void addMember(int memberId, String memberName, String memberGender, int memberAge) {
-        if (memberDAO == null) {
-            throw new IllegalStateException("MemberDAO not initialized");
-        }
+    public void addMember(int memberId, String memberName, String memberGender, int memberAge) throws MySQLException {
         Members member = new Members(memberId, memberName, memberGender, memberAge);
-        try {
-            boolean success = memberDAO.insertMember(member);
-            if (success) {
-                System.out.println("Member: " + memberId + " added successfully");
-            } else {
-                System.out.println("Failed to add member: " + memberId);
-            }
-        } catch (SQLException e) {
-            System.err.println("Error inserting member: " + e.getMessage());
+        boolean success = memberDAO.insertMember(member);
+        if (success) {
+            System.out.println("Member: " + memberId + " added successfully");
+        } else {
+            System.out.println("Failed to add member: " + memberId);
         }
     }
 
-    public void deleteMember(int memberId) {
-        try {
-            boolean success = memberDAO.deleteMember(memberId);
-            if (success) {
-                System.out.println("Member: " + memberId + "deleted successfully");
-            } else {
-                System.out.println("Failed to delete member: " + memberId);
-            }
-        } catch (SQLException e) {
-            System.err.println("Error deleting member: " + e.getMessage());
+    public void deleteMember(int memberId) throws MySQLException {
+        boolean success = memberDAO.deleteMember(memberId);
+        if (success) {
+            System.out.println("Member: " + memberId + "deleted successfully");
+        } else {
+            System.out.println("Failed to delete member: " + memberId);
         }
     }
-
-    public void editMember(int memberId, String memberName, String memberGender, int memberAge) {
+    public void editMember(int memberId, String memberName, String memberGender, int memberAge) throws MySQLException {
         Members member = new Members();
         member.setMemberId(memberId);
         member.setMemberName(memberName);
         member.setMemberGender(memberGender);
         member.setMemberAge(memberAge);
-        try {
-            boolean success = memberDAO.updateMember(member);
-            if (success) {
-                System.out.println("Member: " + memberId + "edited successfully");
-            } else {
-                System.out.println("Failed to edit member: " + memberId);
-            }
-        } catch (SQLException e) {
-            System.err.println("Error editing member: " + e.getMessage());
+        boolean success = memberDAO.updateMember(member);
+        if (success) {
+            System.out.println("Member: " + memberId + "edited successfully");
+        } else {
+            System.out.println("Failed to edit member: " + memberId);
         }
     }
 
-    public void searchMember(String memberName) {
-        try {
-            List<Members> members = memberDAO.findByName(memberName);
-            if (members.isEmpty()) {
-                System.out.println("Member not found");
-            } else {
-                for (Members member : members) {
-                    System.out.println("id: " + member.getMemberId() + " name: " + member.getMemberName() + " gender: " + member.getMemberGender() + " age: " + member.getMemberAge());
-                }
+    public void searchMember(String memberName) throws MySQLException {
+        List<Members> members = memberDAO.findByName(memberName);
+        if (members.isEmpty()) {
+            System.out.println("name: " + memberName+ "Member not found");
+        } else {
+            for (Members member : members) {
+                System.out.println("id: " + member.getMemberId() + " name: " + member.getMemberName() + " gender: " + member.getMemberGender() + " age: " + member.getMemberAge());
             }
-        } catch (SQLException e) {
-            System.err.println("Error finding member: " + e.getMessage());
         }
     }
 
-    public void showMember() {
-        try {
-            List<Members> members = memberDAO.findAll();
-            if (members.isEmpty()) {
-                System.out.println("Member not found");
-            } else {
-                for (Members member : members) {
-                    System.out.println("id: " + member.getMemberId() + " name: " + member.getMemberName() + " gender: " + member.getMemberGender() + " age: " + member.getMemberAge());
-                }
+    public void showMember() throws MySQLException {
+        List<Members> members = memberDAO.findAll();
+        if (members.isEmpty()) {
+            System.out.println("Member not found");
+        } else {
+            for (Members member : members) {
+                System.out.println("id: " + member.getMemberId() + " name: " + member.getMemberName() + " gender: " + member.getMemberGender() + " age: " + member.getMemberAge());
             }
-        } catch (SQLException e) {
-            System.err.println("Error finding member: " + e.getMessage());
         }
     }
 }
